@@ -1,6 +1,7 @@
 package com.example.eventsapp;
 
 import android.Manifest;
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -26,6 +27,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -40,6 +42,8 @@ import com.parse.ParseQuery;
 import com.parse.SaveCallback;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 public class EditEventFragment extends Fragment {
@@ -52,6 +56,11 @@ public class EditEventFragment extends Fragment {
     ImageView image;
     Button save,cancel,delete;
     Bitmap choosenImage;
+    Date date;
+    Calendar calendar;
+    DatePickerDialog dpd;
+    Double latitude,longitude;
+    String address;
 
     public static EditEventFragment newInstance(int position,String postUser,Post post) {
         EditEventFragment fragment = new EditEventFragment();
@@ -93,6 +102,8 @@ public class EditEventFragment extends Fragment {
         description.setText(currentPost.getEventDescription());
         image.setImageBitmap(currentPost.getEventImage());
         choosenImage = currentPost.getEventImage();
+        latitude = currentPost.getLatitude();
+        longitude = currentPost.getLongitude();
 
         final ParseQuery<ParseObject> query = ParseQuery.getQuery("Posts");
         query.whereEqualTo("title",title.getText().toString());
@@ -108,6 +119,43 @@ public class EditEventFragment extends Fragment {
                 }
             }
         });
+
+        location.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(),MapsActivity.class);
+                intent.putExtra("info","old");
+                intent.putExtra("latitude",latitude);
+                intent.putExtra("longitude",longitude);
+                intent.putExtra("loc",address);
+                startActivityForResult(intent,7);
+            }
+        });
+
+
+        deadline.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                date = new Date();
+                calendar = Calendar.getInstance();
+                calendar.setTime(date);
+
+                int day = calendar.get(Calendar.DAY_OF_MONTH);
+                int month = calendar.get(Calendar.MONTH );
+                int year = calendar.get(Calendar.YEAR);
+
+
+                dpd = new DatePickerDialog(getActivity(), new DatePickerDialog.OnDateSetListener() {
+                    @Override
+                    public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+                        deadline.setText(dayOfMonth + "/" + (month+1) + "/" + year);
+                        currentPost.setEventDeadline(dayOfMonth + "/" + (month+1) + "/" + year);
+                    }
+                },year,month,day);
+                dpd.show();
+            }
+        });
+
 
         cancel.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -138,6 +186,7 @@ public class EditEventFragment extends Fragment {
                                         FragmentTransaction fts = fragmentManager.beginTransaction();
                                         fts.replace(R.id.container,eventListFragment);
                                         fts.commit();
+                                        EventListFragment.adapter.notifyDataSetChanged();
                                     }else{
                                         Toast.makeText(getActivity(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
                                     }
@@ -173,6 +222,8 @@ public class EditEventFragment extends Fragment {
                             crrPost.put("location",location.getText().toString());
                             crrPost.put("deadline",deadline.getText().toString());
                             crrPost.put("description",description.getText().toString());
+                            crrPost.put("latitude",latitude);
+                            crrPost.put("longitude",longitude);
                             crrPost.saveInBackground(new SaveCallback() {
                                 @Override
                                 public void done(ParseException e) {
@@ -229,6 +280,12 @@ public class EditEventFragment extends Fragment {
             }catch (Exception e){
                 Toast.makeText(getActivity(), e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
             }
+        }
+        if (requestCode == 7){
+            address = data.getStringExtra("address");
+            latitude = data.getDoubleExtra("lat",0.0);
+            longitude = data.getDoubleExtra("long",0.0);
+            location.setText(address);
         }
     }
 }

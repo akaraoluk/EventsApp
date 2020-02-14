@@ -1,7 +1,10 @@
 package com.example.eventsapp;
 
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.ImageDecoder;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -10,12 +13,14 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.os.Parcelable;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.eventsapp.PostClass.Post;
 import com.parse.ParseUser;
@@ -29,6 +34,8 @@ public class EditableEventDetailFragment extends Fragment {
     TextView title,location,deadline,description;
     ImageView image;
     Button back,edit;
+    Double latitude,longitude;
+    String address;
 
     public static EditableEventDetailFragment newInstance(int position, String postUser,Post post) {
         EditableEventDetailFragment editf = new EditableEventDetailFragment();
@@ -71,6 +78,9 @@ public class EditableEventDetailFragment extends Fragment {
         deadline.setText(currentPost.getEventDeadline());
         description.setText(currentPost.getEventDescription());
         image.setImageBitmap(currentPost.getEventImage());
+        address = currentPost.getEventLocation();
+        latitude = currentPost.getLatitude();
+        longitude = currentPost.getLongitude();
 
         if (currentUser.equals(postUser)){
             edit.setVisibility(View.VISIBLE);
@@ -101,7 +111,18 @@ public class EditableEventDetailFragment extends Fragment {
             }
         });
 
+        location.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(),MapsActivity2.class);
+                intent.putExtra("info","old");
+                intent.putExtra("latitude",latitude);
+                intent.putExtra("longitude",longitude);
+                intent.putExtra("loc",address);
+                startActivityForResult(intent,7);
+            }
+        });
+
         return view;
     }
-
 }

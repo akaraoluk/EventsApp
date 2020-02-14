@@ -39,7 +39,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/edit_imageView" />
 
-    <EditText
+    <TextView
         android:id="@+id/edit_location"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -48,33 +48,33 @@
         android:layout_marginEnd="16dp"
         android:background="@drawable/editarea"
         android:ems="10"
-        android:paddingRight="5dp"
         android:gravity="center_vertical"
         android:hint="Location"
         android:inputType="textPersonName"
         android:paddingLeft="20dp"
+        android:paddingRight="5dp"
         android:textColor="@color/cardview_dark_background"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/edit_title" />
 
-    <EditText
+    <TextView
         android:id="@+id/edit_deadline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginRight="16dp"
+        android:background="@drawable/editarea"
         android:ems="10"
-        android:paddingRight="5dp"
-        android:hint="Deadline"
         android:gravity="center_vertical"
+        android:hint="Deadline"
         android:inputType="date"
         android:paddingLeft="20dp"
-        android:background="@drawable/editarea"
+        android:paddingRight="5dp"
         android:textColor="@color/cardview_dark_background"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/edit_location" />

@@ -40,10 +40,10 @@ import java.util.List;
 
 public class EventListFragment extends Fragment {
 
-    PostAdapter adapter;
+    static PostAdapter adapter;
     ListView listView;
     TextView usernameText;
-    ImageView imageView,addEvent,logoutImage;
+    ImageView imageView,addEvent,logoutImage,myPosts,generalPost;
     Runnable runnable;
     static ArrayList<Bitmap> profileImage = new ArrayList<>();
     static List<Post> posts = new ArrayList<>();
@@ -70,6 +70,8 @@ public class EventListFragment extends Fragment {
         imageView = view.findViewById(R.id.eventlist_image);
         addEvent = view.findViewById(R.id.eventlist_addevent);
         logoutImage = view.findViewById(R.id.eventlist_logout);
+        myPosts = view.findViewById(R.id.eventlist_mypost);
+        generalPost = view.findViewById(R.id.eventlist_world);
 
         currentUser = new User(ParseUser.getCurrentUser().getString("name"),ParseUser.getCurrentUser().getString("phone"),
                 ParseUser.getCurrentUser().getEmail(),ParseUser.getCurrentUser().getString("departmant"));
@@ -133,12 +135,49 @@ public class EventListFragment extends Fragment {
             }
         });
 
+
         final DownloadPosts downloadPosts = new DownloadPosts();
         downloadPosts.execute("start");
+
+        DownloadPic downloadPic = new DownloadPic();
+        downloadPic.execute("start");
+
+        myPosts.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                final DownloadMyPosts downloadMyPosts = new DownloadMyPosts();
+                downloadMyPosts.execute("start");
+
+                //Set Adapter
+                adapter = new PostAdapter(posts,getActivity());
+                listView.setAdapter(adapter);
+
+                myPosts.setVisibility(View.INVISIBLE);
+                generalPost.setVisibility(View.VISIBLE);
+            }
+        });
+
+        generalPost.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                final DownloadPosts downloadPosts = new DownloadPosts();
+                downloadPosts.execute("start");
+
+                //Set Adapter
+                adapter = new PostAdapter(posts,getActivity());
+                listView.setAdapter(adapter);
+
+                myPosts.setVisibility(View.VISIBLE);
+                generalPost.setVisibility(View.INVISIBLE);
+            }
+        });
 
         //Set Adapter
         adapter = new PostAdapter(posts,getActivity());
         listView.setAdapter(adapter);
+
 
         //List Object Click Listener
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -165,6 +204,7 @@ public class EventListFragment extends Fragment {
 
         @Override
         protected ArrayList<Bitmap> doInBackground(String... strings) {
+            posts.clear();
             //Get infos from Parse
             ParseQuery<ParseObject> query = ParseQuery.getQuery("Posts");
             query.findInBackground(new FindCallback<ParseObject>() {
@@ -182,7 +222,7 @@ public class EventListFragment extends Fragment {
                                         if (e == null & data != null){
                                             Bitmap bitmap = BitmapFactory.decodeByteArray(data,0,data.length);
                                             post = new Post(object.getString("username"),object.getString("description"),object.getString("deadline"),
-                                                    object.getString("title"),object.getString("location"),bitmap);
+                                                    object.getString("title"),object.getString("location"),bitmap,object.getDouble("latitude"),object.getDouble("longitude"));
                                             posts.add(post);
                                             adapter.notifyDataSetChanged();
                                         }
@@ -194,6 +234,15 @@ public class EventListFragment extends Fragment {
                 }
             });
 
+            return null;
+        }
+    }
+
+    class DownloadPic extends AsyncTask<String, Integer, ArrayList<Bitmap>> {
+
+        @Override
+        protected ArrayList<Bitmap> doInBackground(String... strings) {
+            profileImage.clear();
             ParseQuery<ParseObject> query2 = ParseQuery.getQuery("profileImages");
             query2.whereEqualTo("username",ParseUser.getCurrentUser().getUsername());
             query2.findInBackground(new FindCallback<ParseObject>() {
@@ -222,6 +271,45 @@ public class EventListFragment extends Fragment {
                     }
                 }
             });
+            return null;
+        }
+    }
+
+    class DownloadMyPosts extends AsyncTask<String, Integer, ArrayList<Bitmap>> {
+
+        @Override
+        protected ArrayList<Bitmap> doInBackground(String... strings) {
+            posts.clear();
+            //Get infos from Parse
+            ParseQuery<ParseObject> query = ParseQuery.getQuery("Posts");
+            query.whereEqualTo("username", ParseUser.getCurrentUser().getUsername());
+            query.findInBackground(new FindCallback<ParseObject>() {
+                @Override
+                public void done(List<ParseObject> objects, ParseException e) {
+                    if (e != null){
+                        Toast.makeText(getActivity(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                    }else{
+                        if (objects.size() > 0){
+                            for (final ParseObject object : objects){
+                                ParseFile parseFile = (ParseFile) object.get("image");
+                                parseFile.getDataInBackground(new GetDataCallback() {
+                                    @Override
+                                    public void done(byte[] data, ParseException e) {
+                                        if (e == null & data != null){
+                                            Bitmap bitmap = BitmapFactory.decodeByteArray(data,0,data.length);
+                                            post = new Post(object.getString("username"),object.getString("description"),object.getString("deadline"),
+                                                    object.getString("title"),object.getString("location"),bitmap,object.getDouble("latitude"),object.getDouble("longitude"));
+                                            posts.add(post);
+                                            adapter.notifyDataSetChanged();
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }
+                }
+            });
+
             return null;
         }
     }

@@ -15,6 +15,7 @@ import com.example.eventsapp.R;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class PostAdapter extends ArrayAdapter<Post>{
 

@@ -25,14 +25,18 @@ public class Post implements Parcelable {
     private String eventTitle;
     private String eventLocation;
     private Bitmap eventImage;
+    private Double latitude;
+    private Double longitude;
 
-    public Post(String username,String eventDescription,String eventDeadline,String eventTitle,String eventLocation,Bitmap eventImage){
+    public Post(String username,String eventDescription,String eventDeadline,String eventTitle,String eventLocation,Bitmap eventImage,Double latitude,Double longitude){
         this.username = username;
         this.eventDescription = eventDescription;
         this.eventDeadline = eventDeadline;
         this.eventTitle = eventTitle;
         this.eventLocation = eventLocation;
         this.eventImage = eventImage;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     public String getUsername() {
@@ -81,6 +85,22 @@ public class Post implements Parcelable {
 
     public void setEventImage(Bitmap eventImage) {
         this.eventImage = eventImage;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
     }
 
     @Override

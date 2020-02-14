@@ -1,7 +1,7 @@
 package com.example.eventsapp;
 
 import android.Manifest;
-import android.content.Context;
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -11,7 +11,6 @@ import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -23,10 +22,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.parse.ParseException;
 import com.parse.ParseFile;
 import com.parse.ParseObject;
@@ -34,19 +36,28 @@ import com.parse.ParseUser;
 import com.parse.SaveCallback;
 
 import java.io.ByteArrayOutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 
 public class UploadPostFragment extends Fragment {
 
-    EditText titleText,locationText,deadlineText,descriptionText;
+    EditText titleText,descriptionText;
+    TextView deadlineText,locationText;
     ImageView imageView;
     Bitmap choosenImage;
     Button btnUpload,btnCancel;
+    Date date;
+    Calendar calendar;
+    DatePickerDialog dpd;
+    SimpleDateFormat sdf;
+    Double latitude,longitude;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
+        //((AppCompatActivity)getActivity()).getSupportActionBar().hide();
     }
 
     @Override
@@ -62,6 +73,28 @@ public class UploadPostFragment extends Fragment {
         imageView = view.findViewById(R.id.upload_imageView);
         btnUpload = view.findViewById(R.id.upload_save);
         btnCancel = view.findViewById(R.id.upload_cancel);
+
+        deadlineText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                date = new Date();
+                calendar = Calendar.getInstance();
+                calendar.setTime(date);
+
+                int day = calendar.get(Calendar.DAY_OF_MONTH);
+                int month = calendar.get(Calendar.MONTH );
+                int year = calendar.get(Calendar.YEAR);
+
+
+                dpd = new DatePickerDialog(getActivity(), new DatePickerDialog.OnDateSetListener() {
+                    @Override
+                    public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+                        deadlineText.setText(dayOfMonth + "/" + (month+1) + "/" + year);
+                    }
+                },year,month,day);
+                dpd.show();
+            }
+        });
 
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -108,6 +141,8 @@ public class UploadPostFragment extends Fragment {
                 parseObject.put("description",description);
                 parseObject.put("deadline",deadline);
                 parseObject.put("username", ParseUser.getCurrentUser().getUsername());
+                parseObject.put("latitude",latitude);
+                parseObject.put("longitude",longitude);
                 parseObject.saveInBackground(new SaveCallback() {
                     @Override
                     public void done(ParseException e) {
@@ -124,9 +159,18 @@ public class UploadPostFragment extends Fragment {
                         }
                     }
                 });
+                EventListFragment.adapter.notifyDataSetChanged();
             }
         });
 
+        locationText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view){
+                Intent intent = new Intent(getActivity(),MapsActivity.class);
+                intent.putExtra("info","new");
+                startActivityForResult(intent,7);
+            }
+        });
 
         return view;
     }
@@ -161,5 +205,12 @@ public class UploadPostFragment extends Fragment {
                 e.printStackTrace();
             }
         }
+        if (requestCode == 7){
+            String address = data.getStringExtra("address");
+            latitude = data.getDoubleExtra("lat",0.0);
+            longitude = data.getDoubleExtra("long",0.0);
+            locationText.setText(address);
+        }
+
     }
 }
